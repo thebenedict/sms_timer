@@ -19,21 +19,26 @@ modem_config = [
     # 'port':      '/dev/ttyUSB0', \
     # 'baudrate': '115200', \
     # 'send_to_self': 1}, \
-    #{'name':      'Tigo TZ B', \
-    # 'number':    '+255717435798', \
-    # 'port':      '/dev/ttyUSB0', \
-    # 'baudrate': '115200', \
-    # 'send_to_self': 1},
-    {'name':      'Airtel TZ', \
-     'number':    '+255686037495', \
+    {'name':      'Tigo TZ A', \
+     'number':    '+255716379091', \
      'port':      '/dev/ttyUSB0', \
      'baudrate': '115200', \
      'send_to_self': 1},
-    {'name':      'Zantel TZ', \
-     'number':    '+255774769736', \
+    {'name':      'Tigo TZ B', \
+     'number':    '+255717435798', \
      'port':      '/dev/ttyUSB1', \
      'baudrate': '115200', \
-     'send_to_self': 1}
+     'send_to_self': 1},
+    #{'name':      'Airtel TZ', \
+    # 'number':    '+255686037495', \
+    # 'port':      '/dev/ttyUSB0', \
+    # 'baudrate': '115200', \
+    # 'send_to_self': 1},
+    #{'name':      'Zantel TZ', \
+    # 'number':    '+255774769736', \
+    # 'port':      '/dev/ttyUSB1', \
+    # 'baudrate': '115200', \
+    # 'send_to_self': 1}
     #...etc if you have >2 modems. You lucky fool.
 ]
     
