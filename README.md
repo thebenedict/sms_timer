@@ -1,8 +1,8 @@
--clone from github
--touch smslog.csv
--plug in modems noting their assigned ports
--edit the config section of modemtester.py
--python ./modemtester.py
+- clone from github
+- touch smslog.csv
+- plug in modems noting their assigned ports
+- edit the config section of modemtester.py
+- python ./modemtester.py
 
 **The columns in the csv file are, in order:**
 
