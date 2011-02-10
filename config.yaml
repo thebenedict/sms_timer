@@ -1,0 +1,19 @@
+
+send_interval: 20
+sleep: 2
+admin_number: +255767199999
+location: 'Mbarara, Uganda'
+
+database: 
+  type: sqlite
+  file: sms_timer.db
+  
+modems:
+  mtn:
+    name: 'MTN'
+    timeout: 2
+    number: '+256778351979'
+    port: '/dev/ttyUSB0'
+    baudrate: 115200
+    send_to_self: true
+    sent_count: 0
