@@ -17,3 +17,11 @@ modems:
     baudrate: 115200
     send_to_self: true
     sent_count: 0
+  orange:
+    name: 'orange'
+    timeout: 2
+    number:
+    port: '/dev/ttyUSB1'
+    baudrate: 115200
+    send_to_self: true
+    sent_count: 0

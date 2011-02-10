@@ -1,4 +1,5 @@
 from setuptools import setup, find_packages
+from setuptools import setup, find_packages
 import sys, os
 
 version = '.1'
@@ -8,7 +9,7 @@ setup(name='sms_timer',
       description="",
       long_description="""\
 """,
-      classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
+      classifiers=[], 
       keywords='',
       author='',
       author_email='',
@@ -18,9 +19,13 @@ setup(name='sms_timer',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
-          # -*- Extra requirements: -*-
+          'pytz',
+          'pyyaml',
+          'sqlobject',
       ],
-      entry_points="""
-      # -*- Entry points: -*-
-      """,
+      entry_points= {
+          'console_scripts': [
+              'start_sms = sms_timer:main'
+              ],          
+          } 
       )
