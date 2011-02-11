@@ -51,7 +51,11 @@ class Modem(SQLObject):
 
 class Message(SQLObject):
     """Class to store message in db"""
+    sent_time = TimeCol()
+    oriing = StringCol()
+    destination = StringCol()
     received_time = TimeCol()
+    signal_strength = IntCol()
     run = ForeignKey('Run')
     text = StringCol()
     number = StringCol()
@@ -90,14 +94,12 @@ def loadModems(config, logger):
     """
     for m in config['modems'].keys():
         modemConfig = config['modems'][m]
-        name = modemConfig.pop('name')
         modem = GsmModem(
             port=modemConfig['port'],
-            timeout=modemConfig['timeout'],
             baudrate=modemConfig['baudrate'])
         modem.boot()
-        networks.update({name: modemConfig})
-        networks[name].update({'modem': modem})
+        networks.update({m: modemConfig})
+        networks[m].update({'modem': modem})
 
 def make_routes(logger):
     """
@@ -134,9 +136,10 @@ def sendFromModems(logger):
         logger.info("Sending %s-->%s" % (origin[0], destination[0]))
         origin[1]['sent_count'] += 1
         global sent_message_counter
-        sent_message_counter += 13
+        sent_message_counter += 1
         message = make_messsage(origin, destination)
         logger.info('Sending %s' % message)
+        modem = origin[1]['modem']
         origin[1]['modem'].send_sms(destination[1]['number'],
                                     message)
 
@@ -154,7 +157,6 @@ def runTest(config, logger):
             sendFromModems(logger)
             logger.info('Check modem %s for new messages @ %s' % (modemKey, timer))
             time.sleep(config.get('sleep'))
-            import ipdb; ipdb.set_trace()
             msg = modemValue['modem'].next_message()
             if msg:
                 logger.info('Got message %s from modem %s' % (msg,
@@ -165,6 +167,7 @@ def runTest(config, logger):
                         number=msg.sender)
                 # remove all messages
                 modemValue['modem'].command('at+cmgd=1,4')  
+                logger.info('Removing clearing all messags from the modem')
             if timer % config.get('send_interval') == 0:
                 make_routes(logger)
 
