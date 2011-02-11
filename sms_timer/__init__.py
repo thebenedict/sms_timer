@@ -56,18 +56,16 @@ class Message(SQLObject):
     """Class to store message in db"""
     sent_time = TimeCol()
     origin = StringCol()
+    origin_signal = IntCol(notNone=False)
     destination = StringCol()
-    received_time = TimeCol(notNone=False,
-                            notNull=False)
-    signal_strength = IntCol()
+    destination_signal = IntCol(notNone=False)
+    received_time = TimeCol(notNone=False)
     run = ForeignKey('Run')
     number = StringCol()
 
 
     def sendFormat(self):
-        text = "(%s)" % urlencode({'sent_time': self.sent_time,
-                                   'run' : self.run.id,
-                                   'id': self.id,})
+        text = "(%s)" % urlencode({'id': self.id,})
         return text
 
 def make_logger(file):
@@ -125,13 +123,20 @@ def make_routes(logger):
 def make_messsage(**kwargs):
     origin = kwargs.pop('origin')
     destination = kwargs.pop('destination')
+    logger = kwargs.pop('logger')
+    signal = None
+    try:
+        signal = origin[1]['modem'].signal_strength()
+    except Exception, e:
+        logger.debug(e)
     run = kwargs.pop('run')
     msg = Message(sent_time=datetime.now(),
                   run=run,
                   origin=origin[0],
+                  origin_signal=signal,
                   received_time=None,
                   destination=destination[0],
-                  signal_strength=destination[1]['modem'].signal_strength(),
+                  destination_signal=None,
                   number=destination[1]['number'])
     return msg
 
@@ -150,6 +155,7 @@ def sendFromModems(logger, run):
         global sent_message_counter
         sent_message_counter += 1
         message = make_messsage(origin=origin,
+                                logger=logger,
                                 destination=destination,
                                 run=run)
         logger.info('Sending %s' % message)
