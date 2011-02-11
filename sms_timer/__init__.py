@@ -94,11 +94,10 @@ def loadModems(config, logger):
         modem = GsmModem(
             port=modemConfig['port'],
             timeout=modemConfig['timeout'],
-            baudrate=modemConfig['baudrate'],
-            logger=GsmModem.debug_logger).boot()
+            baudrate=modemConfig['baudrate'])
+        modem.boot()
         networks.update({name: modemConfig})
         networks[name].update({'modem': modem})
-
 
 def make_routes(logger):
     """
@@ -151,22 +150,25 @@ def runTest(config, logger):
     logger.info('Starting test at %s' % run.date)
     timer = 0
     while True:
-        for modemKey, modemValue in networks.iteritems():
+        for modemKey, modemValue in networks.iteritems():            
             sendFromModems(logger)
-            logger.info('Check modem %s for new messages' % modemKey)
+            logger.info('Check modem %s for new messages @ %s' % (modemKey, timer))
+            time.sleep(config.get('sleep'))
+            import ipdb; ipdb.set_trace()
             msg = modemValue['modem'].next_message()
             if msg:
-                logger.info('Got message %s  from modem %s' % (msg,
-                                                               modemKey))
+                logger.info('Got message %s from modem %s' % (msg,
+                                                              modemKey))
                 Message(received_time=datetime.now(),
                         run=run,
                         text=msg.text,
                         number=msg.sender)
+                # remove all messages
+                modemValue['modem'].command('at+cmgd=1,4')  
             if timer % config.get('send_interval') == 0:
                 make_routes(logger)
-        time.sleep(config.get('sleep'))
-        timer = timer + + 2
 
+            timer = timer + + int(config.get('sleep'))
 
 def main(*args):
     """
