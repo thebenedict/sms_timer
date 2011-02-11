@@ -6,6 +6,8 @@ import os
 import time
 from datetime import datetime
 from Queue import Queue
+from urllib import urlencode
+from urlparse import parse_qs
 import logging
 from yaml import load
 from pygsm import GsmModem
@@ -52,14 +54,20 @@ class Modem(SQLObject):
 class Message(SQLObject):
     """Class to store message in db"""
     sent_time = TimeCol()
-    oriing = StringCol()
+    origin = StringCol()
     destination = StringCol()
-    received_time = TimeCol()
+    received_time = TimeCol(notNone=False,
+                            notNull=False)
     signal_strength = IntCol()
     run = ForeignKey('Run')
-    text = StringCol()
     number = StringCol()
 
+
+    def sendFormat(self):
+        return urlencode({'sent_time': self.sent_time,
+                          'run' : self.run.id,
+                          'id': self.id,})
+        
 
 def make_logger(file):
     """
@@ -113,21 +121,24 @@ def make_routes(logger):
                 messageRoutes.put(m)
 
 
-def make_messsage(origin, destination):
-    return "%s*%s*%s*%s*%s*%s*%s" % (origin[0],
-                                     destination[0],
-                                     sent_message_counter,
-                                     origin[1]['sent_count'],
-                                     datetime.now().date(),
-                                     datetime.now().time(),
-                                     destination[1]['modem'].\
-                                     signal_strength())
+def make_messsage(**kwargs):
+    origin = kwargs.pop('origin')
+    destination = kwargs.pop('destination')
+    run = kwargs.pop('run')
+    msg = Message(sent_time=datetime.now(),
+                  run=run,
+                  origin=origin[0],
+                  received_time=None,
+                  destination=destination[0],
+                  signal_strength=destination[1]['modem'].signal_strength(),
+                  number=destination[1]['number'])
+    return msg
 
 
-def sendFromModems(logger):
+def sendFromModems(logger, run):
     """
     Sends messaeges using the modem
-    get message fromt he queue
+    get message from the queue
     """
     if not messageRoutes.empty():
         route = messageRoutes.get()
@@ -137,11 +148,13 @@ def sendFromModems(logger):
         origin[1]['sent_count'] += 1
         global sent_message_counter
         sent_message_counter += 1
-        message = make_messsage(origin, destination)
+        message = make_messsage(origin=origin,
+                                destination=destination,
+                                run=run)
         logger.info('Sending %s' % message)
         modem = origin[1]['modem']
         origin[1]['modem'].send_sms(destination[1]['number'],
-                                    message)
+                                    message.sendFormat())
 
 
 def runTest(config, logger):
@@ -154,25 +167,25 @@ def runTest(config, logger):
     timer = 0
     while True:
         for modemKey, modemValue in networks.iteritems():            
-            sendFromModems(logger)
-            logger.info('Check modem %s for new messages @ %s' % (modemKey, timer))
-            time.sleep(config.get('sleep'))
+            sendFromModems(logger, run)
+            logger.info('Check modem %s for new messages @ %s' % (
+                modemKey, timer))
             msg = modemValue['modem'].next_message()
             if msg:
                 logger.info('Got message %s from modem %s' % (msg,
                                                               modemKey))
-                Message(received_time=datetime.now(),
-                        run=run,
-                        text=msg.text,
-                        number=msg.sender)
+                data = parse_qs(msg.text)
+                msg = Message.get(data['id'][0])
+                msg.received_time = datetime.now()
+                logger.info('Updating message %s' % msg.id)
                 # remove all messages
-                modemValue['modem'].command('at+cmgd=1,4')  
-                logger.info('Removing clearing all messags from the modem')
+                modemValue['modem'].command('at+cmgd=1,4')
+                logger.info('Removing all messags from the modem')
             if timer % config.get('send_interval') == 0:
                 make_routes(logger)
-
+            time.sleep(config.get('sleep'))
             timer = timer + + int(config.get('sleep'))
-
+            
 def main(*args):
     """
     Main function gets called via the command line
