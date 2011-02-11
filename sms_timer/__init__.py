@@ -179,7 +179,7 @@ def runTest(config, logger):
                     data = parse_qs(msg.text.strip('(').strip(')'))
                     message = Message.get(data['id'][0])
                     message.received_time = datetime.now()
-                    logger.info('Updating message %s' % msg.id)
+                    logger.info('Updating message %s' % message.id)
                 # remove all messages
                 else:
                     logger.info('Invalid Message %s"' % msg.text)
