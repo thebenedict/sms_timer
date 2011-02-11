@@ -9,6 +9,7 @@ from Queue import Queue
 from urllib import urlencode
 from urlparse import parse_qs
 import logging
+import re
 from yaml import load
 from pygsm import GsmModem
 from sqlobject import connectionForURI
@@ -64,10 +65,10 @@ class Message(SQLObject):
 
 
     def sendFormat(self):
-        return urlencode({'sent_time': self.sent_time,
-                          'run' : self.run.id,
-                          'id': self.id,})
-        
+        text = "(%s)" % urlencode({'sent_time': self.sent_time,
+                                   'run' : self.run.id,
+                                   'id': self.id,})
+        return text
 
 def make_logger(file):
     """
@@ -174,11 +175,14 @@ def runTest(config, logger):
             if msg:
                 logger.info('Got message %s from modem %s' % (msg,
                                                               modemKey))
-                data = parse_qs(msg.text)
-                msg = Message.get(data['id'][0])
-                msg.received_time = datetime.now()
-                logger.info('Updating message %s' % msg.id)
+                if re.match('^\(.*\)$',msg.text):                    
+                    data = parse_qs(msg.text.strip('(').strip(')'))
+                    message = Message.get(data['id'][0])
+                    message.received_time = datetime.now()
+                    logger.info('Updating message %s' % msg.id)
                 # remove all messages
+                else:
+                    logger.info('Invalid Message %s"' % msg.text)
                 modemValue['modem'].command('at+cmgd=1,4')
                 logger.info('Removing all messags from the modem')
             if timer % config.get('send_interval') == 0:
