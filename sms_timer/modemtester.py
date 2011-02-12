@@ -14,26 +14,26 @@ from datetime import datetime, timedelta
 ##########
 
 modem_config = [
-    #{'name':      'Vodacom TZ', \
-    # 'number':    '+255767199999', \
-    # 'port':      '/dev/ttyUSB0', \
-    # 'baudrate': '115200', \
-    # 'send_to_self': 1}, \
-    {'name':      'Tigo TZ A', \
-     'number':    '+255716379091', \
-     'port':      '/dev/ttyUSB0', \
-     'baudrate': '115200', \
-     'send_to_self': 1},
-    {'name':      'Tigo TZ B', \
-     'number':    '+255717435798', \
+    {'name':      'Vodacom TZ', \
+     'number':    '+255758859036', \
      'port':      '/dev/ttyUSB1', \
      'baudrate': '115200', \
-     'send_to_self': 1},
-    #{'name':      'Airtel TZ', \
-    # 'number':    '+255686037495', \
+     'send_to_self': 1}, \
+    #{'name':      'Tigo TZ A', \
+    # 'number':    '+255716379091', \
     # 'port':      '/dev/ttyUSB0', \
     # 'baudrate': '115200', \
     # 'send_to_self': 1},
+    #{'name':      'Tigo TZ B', \
+    # 'number':    '+255717435798', \
+    # 'port':      '/dev/ttyUSB1', \
+    # 'baudrate': '115200', \
+    # 'send_to_self': 1},
+    {'name':      'Airtel TZ', \
+     'number':    '+255686037495', \
+     'port':      '/dev/ttyUSB0', \
+     'baudrate': '115200', \
+     'send_to_self': 1},
     #{'name':      'Zantel TZ', \
     # 'number':    '+255774769736', \
     # 'port':      '/dev/ttyUSB1', \
@@ -43,7 +43,7 @@ modem_config = [
 ]
     
 #SEND_INTERVAL must be an even number
-SEND_INTERVAL = 900
+SEND_INTERVAL = 600
 
 #Just for the startup check
 ADMIN_NUMBER = '+255767199999'
@@ -81,7 +81,7 @@ def logModems():
                         n['received_count'] += 1
                         delay = getDelay(msg_data[4],msg_data[5])
                         print "   writing log file ..."
-                        logfile.write("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n" %(msg_data[0], msg_data[1], msg_data[2], msg_data[3], n['received_count'], msg_data[4], msg_data[5], datetime.now().date(), datetime.now().time(), delay, msg_data[6], n['modem'].signal_strength()))
+                        logfile.write("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s %s\",\"%s\ %s\",\"%s\",\"%s\",\"%s\"\n" %(msg_data[0], msg_data[1], msg_data[2], msg_data[3], n['received_count'], msg_data[4], msg_data[5], datetime.now().date(), datetime.now().time(), delay, msg_data[6], n['modem'].signal_strength()))
                     else:
                         logfile.write("\"Malformed message to %s modem\",\"%s\",\"%s\"\n" % (n['name'], msg.text, datetime.now()))
                     logfile.close()
