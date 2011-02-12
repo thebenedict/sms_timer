@@ -16,7 +16,7 @@ from sqlobject import connectionForURI
 from sqlobject import sqlhub
 from sqlobject import SQLObject
 from sqlobject import StringCol
-from sqlobject import TimeCol
+from sqlobject import DateTimeCol
 from sqlobject import BoolCol
 from sqlobject import IntCol
 from sqlobject import ForeignKey
@@ -33,7 +33,7 @@ class Run(SQLObject):
     Each test has its own Run object associated with it.
     """
     location = StringCol()
-    date = TimeCol()
+    date = DateTimeCol()
 
 
 class Modem(SQLObject):
@@ -54,12 +54,12 @@ class Modem(SQLObject):
 
 class Message(SQLObject):
     """Class to store message in db"""
-    sent_time = TimeCol()
+    sent_time = DateTimeCol()
     origin = StringCol()
     origin_signal = IntCol(notNone=False)
     destination = StringCol()
     destination_signal = IntCol(notNone=False)
-    received_time = TimeCol(notNone=False)
+    received_time = DateTimeCol(notNone=False)
     run = ForeignKey('Run')
     number = StringCol()
 
@@ -103,7 +103,8 @@ def loadModems(config, logger):
         modemConfig = config['modems'][m]
         modem = GsmModem(
             port=modemConfig['port'],
-            baudrate=modemConfig['baudrate'])
+            baudrate=modemConfig['baudrate'],
+            logger=GsmModem.debug_logger,)
         modem.boot()
         networks.update({m: modemConfig})
         networks[m].update({'modem': modem})
@@ -125,9 +126,10 @@ def check_balance(**kwargs):
     data = kwargs.pop('data')
     modem = data['modem']
     cmd = modem.command(data['credit_command'])
-    import ipdb; ipdb.set_trace()
-    #results = re.search(data['credit_re'],cmd)                        
-    #print(results.groups())
+    #import ipdb; ipdb.set_trace()
+    results = re.search(data['credit_re'],"".join(cmd))                        
+    if results:
+        print(results.groups())
 
 
 def make_messsage(**kwargs):
@@ -186,8 +188,13 @@ def check_for_new_message(**kwargs):
         if re.match('^\(.*\)$',msg.text):                    
             results = parse_qs(msg.text.strip('(').strip(')'))
             try:
+                signal = data['modem'].signal_strength()
+            except Exception, e:
+                logger.debug(e)
+            try:
                 message = Message.get(results['id'][0])
                 message.received_time = datetime.now()
+                message.destination_signal = signal
                 logger.info('Updating message %s' % message.id)
             except Exception,e:
                 logger.info(e)
@@ -215,6 +222,7 @@ def runTest(config, logger):
                                   logger=logger,
                                   timer=timer)
             if timer % config.get('send_interval') == 0:
+                #check_balance(name=name,data=data)
                 make_routes(logger)
             time.sleep(config.get('sleep'))
             timer = timer + + int(config.get('sleep'))

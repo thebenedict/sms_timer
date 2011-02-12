@@ -12,7 +12,7 @@ database:
 modems:
   mtn:
     number: '+256789906279'
-    port: '/dev/ttyUSB2'
+    port: '/dev/ttyUSB4'
     baudrate: 115200
     send_to_self: true
     sent_count: 0
@@ -20,13 +20,13 @@ modems:
     credit_command: 'at+cusd=1,"*156#"'
     # parse results
     credit_re: 'UGX (\d+).'
-  orange:
-    number: '+256791929964'
-    port: '/dev/ttyUSB1'
-    baudrate: 115200
-    send_to_self: true
-    sent_count: 0
-    # command to look credit amount on orange
-    credit_command: 'at+cusd=1,"*131#"'
-    # parse results
-    credit_re: '(\d+) shillings,'
+#  orange:
+#    number: '+256791929964'
+#    port: '/dev/ttyUSB1'
+#    baudrate: 115200
+#    send_to_self: true
+#    sent_count: 0
+#    # command to look credit amount on orange
+#    credit_command: 'at+cusd=1,"*131#"'
+#    # parse results
+#    credit_re: '(\d+) shillings,'
