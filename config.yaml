@@ -1,0 +1,26 @@
+
+send_interval: 10
+sleep: 2
+admin_number: +255767199999
+location: 'Mbarara, Uganda'
+
+my-number: 0788911892
+database: 
+  type: sqlite
+  file: sms_timer.db
+  
+modems:
+  mtn:
+    number: '+256789906279'
+    port: '/dev/ttyUSB0'
+    baudrate: 115200
+    send_to_self: true
+    sent_count: 0
+
+  # orange:
+  #   name: 'orange'
+  #   number:
+  #   port: '/dev/ttyUSB0'
+  #   baudrate: 115200
+  #   send_to_self: true
+  #   sent_count: 0
