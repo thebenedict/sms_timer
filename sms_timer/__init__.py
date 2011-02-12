@@ -209,13 +209,11 @@ def runTest(config, logger):
     timer = 0
     while True:
         for name, data in networks.iteritems():            
-            #send_from_modems(logger, run)
-            check_balance(name=name,
-                           data=data)
-            # check_for_new_message(name=name,
-            #                       data=data,
-            #                       logger=logger,
-            #                       timer=timer)
+            send_from_modems(logger, run)
+            check_for_new_message(name=name,
+                                  data=data,
+                                  logger=logger,
+                                  timer=timer)
             if timer % config.get('send_interval') == 0:
                 make_routes(logger)
             time.sleep(config.get('sleep'))
