@@ -20,6 +20,7 @@ setup(name='sms_timer',
       zip_safe=False,
       install_requires=[
           'pytz',
+          'pygsm',
           'pyyaml',
           'sqlobject',
       ],
