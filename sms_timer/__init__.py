@@ -120,6 +120,16 @@ def make_routes(logger):
                 messageRoutes.put(m)
 
 
+def check_balance(**kwargs):
+    name = kwargs.pop('name')
+    data = kwargs.pop('data')
+    modem = data['modem']
+    cmd = modem.command(data['credit_command'])
+    import ipdb; ipdb.set_trace()
+    #results = re.search(data['credit_re'],cmd)                        
+    #print(results.groups())
+
+
 def make_messsage(**kwargs):
     origin = kwargs.pop('origin')
     destination = kwargs.pop('destination')
@@ -141,7 +151,7 @@ def make_messsage(**kwargs):
     return msg
 
 
-def sendFromModems(logger, run):
+def send_from_modems(logger, run):
     """
     Sends messaeges using the modem
     get message from the queue
@@ -163,6 +173,31 @@ def sendFromModems(logger, run):
         origin[1]['modem'].send_sms(destination[1]['number'],
                                     message.sendFormat())
 
+def check_for_new_message(**kwargs):
+    name = kwargs.pop('name')
+    data = kwargs.pop('data')
+    logger = kwargs.pop('logger')
+    timer = kwargs.pop('timer')
+    logger.info(
+        'Check %s modem  for new messages @ %s' % (name, timer))
+    msg = data['modem'].next_message()
+    if msg:
+        logger.info('Got message %s from modem %s' % (msg, name))
+        if re.match('^\(.*\)$',msg.text):                    
+            results = parse_qs(msg.text.strip('(').strip(')'))
+            try:
+                message = Message.get(results['id'][0])
+                message.received_time = datetime.now()
+                logger.info('Updating message %s' % message.id)
+            except Exception,e:
+                logger.info(e)
+        # remove all messages
+        else:
+            logger.info('Invalid Message %s"' % msg.text)
+        data['modem'].command('at+cmgd=1,4')
+        logger.info('Removing all messags from the modem')
+
+
 
 def runTest(config, logger):
     """
@@ -173,24 +208,14 @@ def runTest(config, logger):
     logger.info('Starting test at %s' % run.date)
     timer = 0
     while True:
-        for modemKey, modemValue in networks.iteritems():            
-            sendFromModems(logger, run)
-            logger.info('Check modem %s for new messages @ %s' % (
-                modemKey, timer))
-            msg = modemValue['modem'].next_message()
-            if msg:
-                logger.info('Got message %s from modem %s' % (msg,
-                                                              modemKey))
-                if re.match('^\(.*\)$',msg.text):                    
-                    data = parse_qs(msg.text.strip('(').strip(')'))
-                    message = Message.get(data['id'][0])
-                    message.received_time = datetime.now()
-                    logger.info('Updating message %s' % message.id)
-                # remove all messages
-                else:
-                    logger.info('Invalid Message %s"' % msg.text)
-                modemValue['modem'].command('at+cmgd=1,4')
-                logger.info('Removing all messags from the modem')
+        for name, data in networks.iteritems():            
+            #send_from_modems(logger, run)
+            check_balance(name=name,
+                           data=data)
+            # check_for_new_message(name=name,
+            #                       data=data,
+            #                       logger=logger,
+            #                       timer=timer)
             if timer % config.get('send_interval') == 0:
                 make_routes(logger)
             time.sleep(config.get('sleep'))
